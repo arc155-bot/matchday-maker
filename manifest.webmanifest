@@ -1,0 +1,14 @@
+{
+  "name": "VBC Frauenfeld Matchday Maker",
+  "short_name": "Matchday",
+  "description": "Matchday- und Kader-Stories direkt auf dem Handy erstellen.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0b0810",
+  "theme_color": "#120d1a",
+  "icons": [
+    {"src":"icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}
+  ]
+}

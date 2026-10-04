@@ -1,0 +1,8 @@
+[build]
+  publish = "."
+
+# Revalidate the app and service worker so new deployments reach installed PWAs.
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"

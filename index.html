@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#120d1a" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <title>Matchday Maker</title>
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Oswald:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <div class="eyebrow">VBC Frauenfeld · Original Generator</div>
+      <h1>Matchday Maker</h1>
+    </div>
+    <button id="installBtn" class="ghost" hidden>Installieren</button>
+  </header>
+
+  <main class="layout">
+    <section class="preview-wrap">
+      <div class="preview-head">
+        <div>
+          <div class="eyebrow">Live-Vorschau</div>
+          <div id="previewLabel">MATCHDAY</div>
+        </div>
+        <div class="preview-switch">
+          <button id="previewMatchBtn" class="mini active" type="button">Match</button>
+          <button id="previewRosterBtn" class="mini" type="button">Kader</button>
+        </div>
+      </div>
+      <canvas id="storyCanvas" width="1080" height="1920" aria-label="Matchday Vorschau"></canvas>
+    </section>
+
+    <section class="controls">
+      <div class="card">
+        <div class="section-title-row">
+          <div>
+            <div class="eyebrow">1 · Match</div>
+            <h2>Spiel laden</h2>
+          </div>
+          <span id="feedStatus" class="status">bereit</span>
+        </div>
+
+        <label>VolleyManager iCal-Feed
+          <input id="feedUrl" type="url" value="https://volleymanager.volleyball.ch/iCal/schedule/bf4715e0174ce959642d828987515f3eb7c71549" />
+        </label>
+        <div class="button-row">
+          <button id="loadFeedBtn" type="button">Spiele laden</button>
+          <button id="openFeedBtn" class="secondary" type="button">Feed öffnen</button>
+        </div>
+        <p class="hint">Die App versucht den VolleyManager direkt zu lesen. Falls Android/Browser den Abruf blockiert: „Feed öffnen“, die .ics-Datei herunterladen und unten auswählen. Alle übernommenen Angaben kannst du danach ändern.</p>
+
+        <details id="icsFallback">
+          <summary>ICS-Datei manuell einlesen</summary>
+          <label>.ics-Datei<input id="icsFile" type="file" accept=".ics,text/calendar" /></label>
+          <label>Oder ICS-Text<textarea id="icsText" rows="3" placeholder="BEGIN:VCALENDAR …"></textarea></label>
+          <button id="parseIcsBtn" class="secondary full" type="button">ICS einlesen</button>
+        </details>
+
+        <label>Spiel auswählen
+          <select id="eventSelect"><option value="">Noch kein Spiel geladen</option></select>
+        </label>
+
+        <div class="grid2">
+          <label>Heimteam<input id="homeTeam" value="VBC Frauenfeld 1" /></label>
+          <label>Auswärtsteam<input id="awayTeam" value="Volley Amriswil H4" /></label>
+          <label>Datum<input id="date" type="date" value="2026-09-04" /></label>
+          <label>Uhrzeit<input id="time" type="time" value="20:30" /></label>
+          <label class="span2">Halle<input id="venue" value="Schulhaus Oberwiesen" /></label>
+          <label class="span2">Adresse<input id="address" value="Oberwiesenstrasse 40 · 8500 Frauenfeld" /></label>
+          <label>Liga / Label<input id="competition" value="3. Liga · Männer" /></label>
+          <label>Eigenes Team<input id="ownTeam" value="VBC Frauenfeld 1" /></label>
+        </div>
+        <div id="homeAwayBadge" class="match-badge">HEIMSPIEL</div>
+      </div>
+
+      <div class="card">
+        <div class="section-title-row">
+          <div>
+            <div class="eyebrow">2 · Kader</div>
+            <h2>Aufgebot</h2>
+          </div>
+          <div class="tiny-actions">
+            <button id="selectAllBtn" class="tiny secondary" type="button">Alle</button>
+            <button id="selectNoneBtn" class="tiny secondary" type="button">Keine</button>
+          </div>
+        </div>
+        <div id="rosterList" class="roster-list"></div>
+        <div class="grid2 roles">
+          <label>Captain<select id="captainSelect"></select></label>
+          <label>Libero<select id="liberoSelect"></select></label>
+        </div>
+        <p class="hint">Sortierung im Video: Captain → Libero → alle übrigen nach Trikotnummer.</p>
+        <label>Coach<input id="coach" value="Oliver" /></label>
+        <details>
+          <summary>Spielerliste bearbeiten</summary>
+          <div id="playerEditor" class="player-editor"></div>
+          <button id="addPlayerBtn" class="secondary full" type="button">+ Spieler hinzufügen</button>
+        </details>
+      </div>
+
+      <div class="card">
+        <div class="eyebrow">3 · Logos</div>
+        <h2>Teamlogos</h2>
+        <div class="grid2">
+          <label>Heimteam-Logo<input id="homeLogo" type="file" accept="image/*" /></label>
+          <label>Auswärtsteam-Logo<input id="awayLogo" type="file" accept="image/*" /></label>
+        </div>
+        <p class="hint">Bekannte Liga-Gegner werden automatisch erkannt. Ein hochgeladenes Logo wird für genau dieses Team auf deinem Handy gespeichert.</p>
+        <button id="resetLogosBtn" class="secondary full" type="button">Eigene Logo-Zuordnungen zurücksetzen</button>
+      </div>
+
+      <div class="card actions-card">
+        <button id="sharePngBtn" class="secondary" type="button">Bild teilen</button>
+        <button id="exportPngBtn" class="secondary" type="button">Bild speichern</button>
+        <button id="renderVideoBtn" class="primary span-action" type="button">Video erstellen</button>
+        <div id="renderStatus" class="hint" aria-live="polite"></div>
+
+        <div id="videoResult" class="video-result" hidden>
+          <div class="video-result-title">Video ist fertig</div>
+          <video id="videoPreview" controls playsinline preload="metadata"></video>
+          <div class="video-result-actions">
+            <button id="shareVideoBtn" class="primary" type="button">Video teilen</button>
+            <button id="saveVideoBtn" class="secondary" type="button">Video speichern</button>
+          </div>
+          <p class="hint">Wichtig auf Android: Erst jetzt auf „Video speichern“ tippen. Der zweite Tap zählt als direkte Nutzeraktion und Chrome blockiert den Download dann nicht.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
