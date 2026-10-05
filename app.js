@@ -1,4 +1,4 @@
-(() => {
+(async () => {
   'use strict';
 
   const $ = (id) => document.getElementById(id);
@@ -23,18 +23,12 @@
   const PROFILE_LOGO_SRC = 'assets/logos/instagram_herren1.png';
   const OWN_LOGO_SRC = 'assets/logos/vbc_frauenfeld.png';
 
-  const BUILTIN_LOGOS = [
-    { keys: ['vbc frauenfeld'], src: OWN_LOGO_SRC },
-    { keys: ['volley amriswil'], src: 'assets/logos/volley_amriswil.png' },
-    { keys: ['volley butschwil', 'volley buetschwil'], src: 'assets/logos/volley_buetschwil.png' },
-    { keys: ['stadtturnverein wil', 'stv wil'], src: 'assets/logos/stadtturnverein_wil.png' },
-    { keys: ['vbc seuzach'], src: 'assets/logos/vbc_seuzach.png' },
-    { keys: ['tv felben wellhausen', 'felben wellhausen'], src: 'assets/logos/tv_felben_wellhausen.png' },
-    { keys: ['vbr rickenbach', 'rickenbach'], src: 'assets/logos/vbr_rickenbach.png' },
-    { keys: ['vc smash winterthur', 'smash winterthur'], src: 'assets/logos/vc_smash_winterthur.png' },
-    { keys: ['tv warth weiningen', 'warth weiningen'], src: 'assets/logos/tv_warth_weiningen.png' },
-    { keys: ['vbc schaffhausen'], src: 'assets/logos/vbc_schaffhausen.png' }
-  ];
+  const Data = globalThis.MatchdayData;
+  const DATA_URL = 'data/app-data.json';
+  let projectData = await loadProjectData();
+  let BUILTIN_LOGOS = projectData.logos;
+  let selectedEventId = localStorage.getItem('md_selectedEventId') || '';
+  let scheduleSource = { ...projectData.source };
 
   // v4.2 typography:
   // Oswald = headlines, date/time, VS and jersey numbers.
@@ -47,7 +41,7 @@
   let baseRoster = null;
   let previewMode = 'match';
   let installPrompt = null;
-  let parsedEvents = [];
+  let parsedEvents = readStorage('md_events', projectData.matches).map(event => ({ ...event }));
   let renderedVideoBlob = null;
   let renderedVideoName = '';
   let renderedVideoUrl = '';
@@ -55,24 +49,98 @@
   let sceneCache = null;
   let sceneCacheRevision = -1;
 
-  let players = JSON.parse(localStorage.getItem('md_players') || 'null') || [
-    { name: 'Giovanni', number: 6, selected: true },
-    { name: 'Kevin', number: 21, selected: true },
-    { name: 'Matthäus', number: 2, selected: true },
-    { name: 'Luan', number: 5, selected: true },
-    { name: 'Mike', number: 7, selected: true },
-    { name: 'Raschad', number: 8, selected: true },
-    { name: 'Cameron', number: 9, selected: true },
-    { name: 'Rohan', number: 10, selected: true },
-    { name: 'Maurice', number: 12, selected: true },
-    { name: 'Jan', number: 13, selected: true },
-    { name: 'Zaki', number: 20, selected: true }
-  ];
-  let captain = localStorage.getItem('md_captain') || 'Giovanni';
-  let libero = localStorage.getItem('md_libero') || 'Kevin';
-  let customLogos = JSON.parse(localStorage.getItem('md_teamLogos') || '{}');
+  let players = readStorage('md_players', projectData.players).map(player => ({ ...player }));
+  let captain = localStorage.getItem('md_captain') ?? projectData.team.captain;
+  let libero = localStorage.getItem('md_libero') ?? projectData.team.libero;
+  let customLogos = readStorage('md_teamLogos', projectData.logoOverrides);
 
   const matchFields = ['homeTeam', 'awayTeam', 'date', 'time', 'venue', 'address', 'competition', 'ownTeam', 'coach'];
+
+  function readStorage(key, fallback) {
+    try { return JSON.parse(localStorage.getItem(key)) ?? fallback; }
+    catch (_) { return fallback; }
+  }
+
+  async function loadProjectData() {
+    try {
+      const response = await fetch(DATA_URL, { cache: 'no-store' });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const data = Data.validateData(await response.json());
+      localStorage.setItem('md_projectData', JSON.stringify(data));
+      $('dataStatus').textContent = `${data.matches.length} gemeinsame Spiele geladen`;
+      return data;
+    } catch (error) {
+      const cached = readStorage('md_projectData', null);
+      if (cached) {
+        $('dataStatus').textContent = 'Zuletzt geladene gemeinsame Daten werden verwendet.';
+        return Data.validateData(cached);
+      }
+      $('dataStatus').textContent = 'Gemeinsame Daten konnten nicht geladen werden. Bitte eine Datendatei importieren.';
+      return Data.validateData({ version: 1, timezone: 'Europe/Zurich', team: { name: $('ownTeam').value, competition: $('competition').value, coach: $('coach').value }, players: [], matches: [], logos: [] });
+    }
+  }
+
+  function applyTeamDefaults() {
+    $('ownTeam').value = projectData.team.name;
+    $('competition').value = projectData.team.competition;
+    $('coach').value = projectData.team.coach;
+    if (projectData.source.url) $('feedUrl').value = projectData.source.url;
+  }
+
+  function persistEvents() {
+    localStorage.setItem('md_events', JSON.stringify(parsedEvents));
+    localStorage.setItem('md_selectedEventId', selectedEventId);
+    localStorage.setItem('md_scheduleSource', JSON.stringify(scheduleSource));
+    $('feedStatus').textContent = `${parsedEvents.length} Spiele`;
+  }
+
+  function saveCurrentEvent(notify = true) {
+    const event = Data.normalizeMatch({
+      id: selectedEventId || `manual-${globalThis.crypto?.randomUUID?.() || Date.now()}`,
+      ...Object.fromEntries(['homeTeam', 'awayTeam', 'date', 'time', 'venue', 'address', 'competition'].map(key => [key, $(key).value]))
+    });
+    const existing = parsedEvents.findIndex(item => item.id === event.id);
+    if (existing >= 0) parsedEvents[existing] = event;
+    else parsedEvents.push(event);
+    parsedEvents = Data.sortMatches(parsedEvents);
+    selectedEventId = event.id;
+    persistEvents();
+    populateEvents({ apply: false });
+    saveState();
+    if (notify) $('dataStatus').textContent = 'Spiel auf diesem Gerät gespeichert. Exportiere die Daten für die gemeinsame Datei.';
+    return event;
+  }
+
+  function currentData() {
+    return Data.validateData({
+      ...projectData, source: scheduleSource,
+      team: { name: $('ownTeam').value, competition: $('competition').value, coach: $('coach').value, captain, libero },
+      players, matches: parsedEvents, logos: BUILTIN_LOGOS, logoOverrides: customLogos
+    });
+  }
+
+  function useData(data) {
+    projectData = Data.validateData(data);
+    BUILTIN_LOGOS = projectData.logos;
+    players = projectData.players.map(player => ({ ...player }));
+    captain = projectData.team.captain;
+    libero = projectData.team.libero;
+    customLogos = { ...projectData.logoOverrides };
+    parsedEvents = projectData.matches.map(event => ({ ...event }));
+    selectedEventId = '';
+    scheduleSource = { ...projectData.source };
+    applyTeamDefaults();
+    if (!parsedEvents.length) {
+      ['homeTeam', 'awayTeam', 'date', 'time', 'venue', 'address'].forEach(key => { $(key).value = ''; });
+      $('homeTeam').value = projectData.team.name;
+    }
+    populateEvents();
+    persistEvents();
+    renderRosterControls();
+    saveState();
+    invalidateScene();
+    draw();
+  }
 
   function invalidateScene() {
     sceneRevision += 1;
@@ -90,7 +158,7 @@
   }
 
   function restore() {
-    const obj = JSON.parse(localStorage.getItem('md_match') || 'null');
+    const obj = readStorage('md_match', null);
     if (obj) {
       matchFields.forEach(id => {
         if (obj[id] != null) $(id).value = obj[id];
@@ -852,85 +920,46 @@
   function easeOut(v) { v = clamp(v); return 1 - Math.pow(1 - v, 3); }
   function easeInOut(v) { v = clamp(v); return v * v * (3 - 2 * v); }
 
-  function parseICS(text) {
-    const unfolded = (text || '').replace(/\r?\n[ \t]/g, '');
-    const blocks = unfolded.split('BEGIN:VEVENT').slice(1).map(x => x.split('END:VEVENT')[0]);
-    return blocks.map((b, idx) => {
-      const get = key => {
-        const m = b.match(new RegExp('^' + key + '(?:;[^:]*)?:(.*)$', 'mi'));
-        return m ? m[1].trim() : '';
-      };
-      const summary = decodeIcs(get('SUMMARY'));
-      const location = decodeIcs(get('LOCATION'));
-      const dt = get('DTSTART');
-      let date = '', time = '';
-      const dm = dt.match(/(\d{4})(\d{2})(\d{2})T?(\d{2})?(\d{2})?/);
-      if (dm) {
-        date = `${dm[1]}-${dm[2]}-${dm[3]}`;
-        if (dm[4]) time = `${dm[4]}:${dm[5] || '00'}`;
-      }
-      let home = '', away = '';
-      const clean = summary.replace(/\s+/g, ' ').trim();
-      const separators = [' - ', ' – ', ' — ', ' vs. ', ' vs ', ' VS '];
-      for (const sep of separators) {
-        if (clean.includes(sep)) {
-          const parts = clean.split(sep);
-          if (parts.length >= 2) {
-            home = parts[0].trim();
-            away = parts.slice(1).join(sep).trim();
-            break;
-          }
-        }
-      }
-      return { id: idx, summary, location, date, time, home, away };
-    }).filter(e => e.summary || e.date).sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
-  }
-
-  function decodeIcs(s) {
-    return (s || '').replace(/\\n/gi, ' ').replace(/\\,/g, ',').replace(/\\;/g, ';').replace(/\\\\/g, '\\');
-  }
-
-  function populateEvents() {
+  function populateEvents({ apply = true } = {}) {
     const select = $('eventSelect');
-    select.innerHTML = '';
+    select.innerHTML = '<option value="">Manuelle Angaben / neues Spiel</option>';
     if (!parsedEvents.length) {
-      select.innerHTML = '<option value="">Keine Spiele gefunden</option>';
+      selectedEventId = '';
+      $('feedStatus').textContent = 'Keine Spiele gespeichert';
       return;
     }
     parsedEvents.forEach((e, i) => {
       const o = document.createElement('option');
       o.value = i;
-      o.textContent = `${e.date || 'Datum?'} ${e.time || ''} · ${e.summary}`;
+      o.textContent = `${e.date} ${e.time || ''} · ${e.homeTeam} – ${e.awayTeam}`;
       select.appendChild(o);
     });
-    const now = new Date();
-    const key = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-    let next = parsedEvents.findIndex(e => (e.date || '9999-99-99') >= key);
+    const now = Data.dateParts(new Date(), projectData.timezone);
+    const key = now.date + now.time;
+    let next = parsedEvents.findIndex(e => e.id === selectedEventId);
+    if (next < 0 && !apply) next = parsedEvents.findIndex(e => e.date === $('date').value && e.homeTeam === $('homeTeam').value && e.awayTeam === $('awayTeam').value);
+    if (next < 0 && !apply) {
+      select.value = '';
+      selectedEventId = '';
+      $('feedStatus').textContent = `${parsedEvents.length} Spiele`;
+      return;
+    }
+    if (next < 0) next = parsedEvents.findIndex(e => (e.date + (e.time || '23:59')) >= key);
     if (next < 0) next = Math.max(0, parsedEvents.length - 1);
     select.value = String(next);
-    applyEvent(next);
-  }
-
-  function splitLocation(loc) {
-    const value = (loc || '').trim();
-    if (!value) return ['', ''];
-    const parts = value.split(/\s*[|;]\s*|\s+-\s+(?=\d{4}\b)/).filter(Boolean);
-    if (parts.length >= 2) return [parts[0], parts.slice(1).join(' · ')];
-    const dot = value.split('·').map(x => x.trim()).filter(Boolean);
-    if (dot.length >= 2) return [dot[0], dot.slice(1).join(' · ')];
-    return [value, ''];
+    selectedEventId = parsedEvents[next].id;
+    $('feedStatus').textContent = `${parsedEvents.length} Spiele`;
+    if (apply) applyEvent(next);
   }
 
   function applyEvent(index) {
+    if (index === '') { selectedEventId = ''; localStorage.removeItem('md_selectedEventId'); return; }
     const e = parsedEvents[Number(index)];
     if (!e) return;
-    if (e.home) $('homeTeam').value = e.home;
-    if (e.away) $('awayTeam').value = e.away;
-    if (e.date) $('date').value = e.date;
-    if (e.time) $('time').value = e.time;
-    const [venue, address] = splitLocation(e.location);
-    if (venue) $('venue').value = venue;
-    if (address) $('address').value = address;
+    selectedEventId = e.id;
+    localStorage.setItem('md_selectedEventId', e.id);
+    ['homeTeam', 'awayTeam', 'date', 'time', 'venue', 'address'].forEach(key => { $(key).value = e[key] || ''; });
+    $('competition').value = e.competition || projectData.team.competition;
     saveState();
     invalidateScene();
     draw();
@@ -944,8 +973,12 @@
       const r = await fetch(url, { cache: 'no-store', mode: 'cors' });
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
       const t = await r.text();
-      parsedEvents = parseICS(t);
+      parsedEvents = Data.parseICS(t, projectData.timezone);
+      selectedEventId = '';
+      scheduleSource = { url, importedAt: new Date().toISOString() };
       populateEvents();
+      persistEvents();
+      $('dataStatus').textContent = 'VolleyManager-Spiele geladen. Exportiere die Daten, um den gemeinsamen Spielplan zu aktualisieren.';
       $('feedStatus').textContent = `${parsedEvents.length} Spiele`;
     } catch (err) {
       $('feedStatus').textContent = 'Abruf blockiert';
@@ -1075,7 +1108,10 @@
   }
   function escapeAttr(s) { return escapeHtml(s); }
 
+  applyTeamDefaults();
   restore();
+  scheduleSource = readStorage('md_scheduleSource', scheduleSource);
+  populateEvents({ apply: !readStorage('md_match', null) });
   renderRosterControls();
   updateHomeAway();
 
@@ -1188,14 +1224,63 @@
     if (u) window.open(u, '_blank', 'noopener');
   });
   $('parseIcsBtn').addEventListener('click', async () => {
-    let text = $('icsText').value;
-    const file = $('icsFile').files[0];
-    if (file) text = await file.text();
-    parsedEvents = parseICS(text);
-    populateEvents();
-    $('feedStatus').textContent = `${parsedEvents.length} Spiele`;
+    try {
+      let text = $('icsText').value;
+      const file = $('icsFile').files[0];
+      if (file) text = await file.text();
+      parsedEvents = Data.parseICS(text, projectData.timezone);
+      selectedEventId = '';
+      scheduleSource = { url: $('feedUrl').value.trim(), importedAt: new Date().toISOString() };
+      populateEvents();
+      persistEvents();
+      $('dataStatus').textContent = 'Spielplan importiert. Exportiere die Daten für die gemeinsame Datei.';
+    } catch (error) { $('dataStatus').textContent = error.message; }
   });
   $('eventSelect').addEventListener('change', e => applyEvent(e.target.value));
+
+  $('saveEventBtn').addEventListener('click', () => {
+    try { saveCurrentEvent(); }
+    catch (error) { $('dataStatus').textContent = error.message; }
+  });
+  $('newEventBtn').addEventListener('click', () => {
+    selectedEventId = '';
+    $('eventSelect').value = '';
+    ['homeTeam', 'awayTeam', 'date', 'time', 'venue', 'address'].forEach(key => { $(key).value = ''; });
+    $('homeTeam').value = $('ownTeam').value;
+    $('competition').value = projectData.team.competition;
+    saveState();
+    localStorage.removeItem('md_selectedEventId');
+    invalidateScene();
+    draw();
+  });
+  $('deleteEventBtn').addEventListener('click', () => {
+    if (!selectedEventId) { $('dataStatus').textContent = 'Bitte zuerst ein gespeichertes Spiel auswählen.'; return; }
+    parsedEvents = parsedEvents.filter(event => event.id !== selectedEventId);
+    selectedEventId = '';
+    populateEvents();
+    persistEvents();
+    $('dataStatus').textContent = 'Spiel auf diesem Gerät entfernt. Exportiere die Daten für die gemeinsame Datei.';
+  });
+  $('exportDataBtn').addEventListener('click', () => {
+    try {
+      const blob = new Blob([JSON.stringify(currentData(), null, 2) + '\n'], { type: 'application/json' });
+      downloadBlob(blob, 'app-data.json');
+      $('dataStatus').textContent = 'Datendatei exportiert: Spielplan, Kader und Teamangaben.';
+    } catch (error) { $('dataStatus').textContent = error.message; }
+  });
+  $('importDataFile').addEventListener('change', async event => {
+    try {
+      const file = event.target.files[0];
+      if (!file) return;
+      useData(JSON.parse(await file.text()));
+      $('dataStatus').textContent = `${parsedEvents.length} Spiele und ${players.length} Spieler aus der Datei übernommen.`;
+    } catch (error) { $('dataStatus').textContent = 'Import fehlgeschlagen: ' + error.message; }
+    finally { event.target.value = ''; }
+  });
+  $('loadProjectDataBtn').addEventListener('click', async () => {
+    try { useData(await loadProjectData()); }
+    catch (error) { $('dataStatus').textContent = error.message; }
+  });
 
   $('homeLogo').addEventListener('change', async e => assignUploadedLogo(e.target.files[0], $('homeTeam').value));
   $('awayLogo').addEventListener('change', async e => assignUploadedLogo(e.target.files[0], $('awayTeam').value));

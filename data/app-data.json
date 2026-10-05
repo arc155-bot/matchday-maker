@@ -1,0 +1,283 @@
+{
+  "version": 1,
+  "timezone": "Europe/Zurich",
+  "source": {
+    "url": "https://volleymanager.volleyball.ch/iCal/schedule/bf4715e0174ce959642d828987515f3eb7c71549",
+    "importedAt": "2026-10-05T06:27:00.943Z"
+  },
+  "team": {
+    "name": "VBC Frauenfeld 1",
+    "competition": "3. Liga · Männer",
+    "coach": "Oliver",
+    "captain": "Giovanni",
+    "libero": "Kevin"
+  },
+  "players": [
+    {
+      "name": "Giovanni",
+      "number": 6,
+      "selected": true
+    },
+    {
+      "name": "Kevin",
+      "number": 21,
+      "selected": true
+    },
+    {
+      "name": "Matthäus",
+      "number": 2,
+      "selected": true
+    },
+    {
+      "name": "Luan",
+      "number": 5,
+      "selected": true
+    },
+    {
+      "name": "Mike",
+      "number": 7,
+      "selected": true
+    },
+    {
+      "name": "Raschad",
+      "number": 8,
+      "selected": true
+    },
+    {
+      "name": "Cameron",
+      "number": 9,
+      "selected": true
+    },
+    {
+      "name": "Rohan",
+      "number": 10,
+      "selected": true
+    },
+    {
+      "name": "Maurice",
+      "number": 12,
+      "selected": true
+    },
+    {
+      "name": "Jan",
+      "number": 13,
+      "selected": true
+    },
+    {
+      "name": "Zaki",
+      "number": 20,
+      "selected": true
+    }
+  ],
+  "logos": [
+    {
+      "keys": [
+        "vbc frauenfeld"
+      ],
+      "src": "assets/logos/vbc_frauenfeld.png"
+    },
+    {
+      "keys": [
+        "volley amriswil"
+      ],
+      "src": "assets/logos/volley_amriswil.png"
+    },
+    {
+      "keys": [
+        "volley butschwil",
+        "volley buetschwil"
+      ],
+      "src": "assets/logos/volley_buetschwil.png"
+    },
+    {
+      "keys": [
+        "stadtturnverein wil",
+        "stv wil"
+      ],
+      "src": "assets/logos/stadtturnverein_wil.png"
+    },
+    {
+      "keys": [
+        "vbc seuzach"
+      ],
+      "src": "assets/logos/vbc_seuzach.png"
+    },
+    {
+      "keys": [
+        "tv felben wellhausen",
+        "felben wellhausen"
+      ],
+      "src": "assets/logos/tv_felben_wellhausen.png"
+    },
+    {
+      "keys": [
+        "vbr rickenbach",
+        "rickenbach"
+      ],
+      "src": "assets/logos/vbr_rickenbach.png"
+    },
+    {
+      "keys": [
+        "vc smash winterthur",
+        "smash winterthur"
+      ],
+      "src": "assets/logos/vc_smash_winterthur.png"
+    },
+    {
+      "keys": [
+        "tv warth weiningen",
+        "warth weiningen"
+      ],
+      "src": "assets/logos/tv_warth_weiningen.png"
+    },
+    {
+      "keys": [
+        "vbc schaffhausen"
+      ],
+      "src": "assets/logos/vbc_schaffhausen.png"
+    }
+  ],
+  "matches": [
+    {
+      "id": "game-403163",
+      "homeTeam": "VBC Frauenfeld 1",
+      "awayTeam": "VBR Rickenbach 1",
+      "date": "2026-10-25",
+      "time": "14:00",
+      "venue": "Turnhalle Oberwiesen",
+      "address": "Oberwiesenstrasse, 8500 Frauenfeld",
+      "competition": "3. Liga · Männer"
+    },
+    {
+      "id": "game-403168",
+      "homeTeam": "VBC Schaffhausen 4",
+      "awayTeam": "VBC Frauenfeld 1",
+      "date": "2026-10-31",
+      "time": "10:00",
+      "venue": "Sporthalle BBZ Mühlental",
+      "address": "Mühlentalstrasse, 8200 Schaffhausen",
+      "competition": "3. Liga · Männer"
+    },
+    {
+      "id": "game-403171",
+      "homeTeam": "VBC Schaffhausen 2",
+      "awayTeam": "VBC Frauenfeld 1",
+      "date": "2026-11-07",
+      "time": "16:00",
+      "venue": "Dreifach Sporthalle Munot 2",
+      "address": "Munotstrasse, 8200 Schaffhausen",
+      "competition": "3. Liga · Männer"
+    },
+    {
+      "id": "game-403175",
+      "homeTeam": "VBC Frauenfeld 1",
+      "awayTeam": "VBC Seuzach",
+      "date": "2026-11-14",
+      "time": "16:00",
+      "venue": "Turnhalle Oberwiesen",
+      "address": "Oberwiesenstrasse, 8500 Frauenfeld",
+      "competition": "3. Liga · Männer"
+    },
+    {
+      "id": "game-403182",
+      "homeTeam": "VC Smash Winterthur 3",
+      "awayTeam": "VBC Frauenfeld 1",
+      "date": "2026-11-21",
+      "time": "12:00",
+      "venue": "Zinzikon 1-2",
+      "address": "Ruchwiesenstrasse, 8404 Winterthur",
+      "competition": "3. Liga · Männer"
+    },
+    {
+      "id": "game-403183",
+      "homeTeam": "VBC Frauenfeld 1",
+      "awayTeam": "TV Felben-Wellhausen",
+      "date": "2026-11-27",
+      "time": "20:30",
+      "venue": "Turnhalle Oberwiesen",
+      "address": "Oberwiesenstrasse, 8500 Frauenfeld",
+      "competition": "3. Liga · Männer"
+    },
+    {
+      "id": "game-403189",
+      "homeTeam": "Stadtturnverein Wil 1",
+      "awayTeam": "VBC Frauenfeld 1",
+      "date": "2026-12-06",
+      "time": "14:00",
+      "venue": "Mattschulhaus",
+      "address": "Glärnischstrasse, 9500 Wil",
+      "competition": "3. Liga · Männer"
+    },
+    {
+      "id": "game-403191",
+      "homeTeam": "VBR Rickenbach 1",
+      "awayTeam": "VBC Frauenfeld 1",
+      "date": "2026-12-13",
+      "time": "14:00",
+      "venue": "Mehrzweckhalle Hofacker",
+      "address": "Breitestrasse, 8545 Rickenbach Sulz",
+      "competition": "3. Liga · Männer"
+    },
+    {
+      "id": "game-403196",
+      "homeTeam": "VBC Frauenfeld 1",
+      "awayTeam": "VBC Schaffhausen 4",
+      "date": "2027-01-09",
+      "time": "14:00",
+      "venue": "Turnhalle Oberwiesen",
+      "address": "Oberwiesenstrasse, 8500 Frauenfeld",
+      "competition": "3. Liga · Männer"
+    },
+    {
+      "id": "game-403199",
+      "homeTeam": "VBC Frauenfeld 1",
+      "awayTeam": "VBC Schaffhausen 2",
+      "date": "2027-01-15",
+      "time": "20:30",
+      "venue": "Turnhalle Oberwiesen",
+      "address": "Oberwiesenstrasse, 8500 Frauenfeld",
+      "competition": "3. Liga · Männer"
+    },
+    {
+      "id": "game-403203",
+      "homeTeam": "VBC Seuzach",
+      "awayTeam": "VBC Frauenfeld 1",
+      "date": "2027-01-30",
+      "time": "15:30",
+      "venue": "Halden",
+      "address": "Haldenstrasse, 8472 Seuzach",
+      "competition": "3. Liga · Männer"
+    },
+    {
+      "id": "game-403210",
+      "homeTeam": "VBC Frauenfeld 1",
+      "awayTeam": "VC Smash Winterthur 3",
+      "date": "2027-02-13",
+      "time": "12:00",
+      "venue": "Turnhalle Oberwiesen",
+      "address": "Oberwiesenstrasse, 8500 Frauenfeld",
+      "competition": "3. Liga · Männer"
+    },
+    {
+      "id": "game-403211",
+      "homeTeam": "TV Felben-Wellhausen",
+      "awayTeam": "VBC Frauenfeld 1",
+      "date": "2027-02-22",
+      "time": "20:30",
+      "venue": "Heuberghalle",
+      "address": "Affolterstrasse, 8552 Felben - Wellhausen",
+      "competition": "3. Liga · Männer"
+    },
+    {
+      "id": "game-403217",
+      "homeTeam": "VBC Frauenfeld 1",
+      "awayTeam": "Stadtturnverein Wil 1",
+      "date": "2027-03-05",
+      "time": "20:30",
+      "venue": "Turnhalle Oberwiesen",
+      "address": "Oberwiesenstrasse, 8500 Frauenfeld",
+      "competition": "3. Liga · Männer"
+    }
+  ],
+  "logoOverrides": {}
+}

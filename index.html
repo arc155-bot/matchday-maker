@@ -66,6 +66,7 @@
         <label>Spiel auswählen
           <select id="eventSelect"><option value="">Noch kein Spiel geladen</option></select>
         </label>
+        <p class="hint">Der gespeicherte Spielplan ist beim Öffnen bereits verfügbar. „Spiele laden“ holt neue Termine vom VolleyManager.</p>
 
         <div class="grid2">
           <label>Heimteam<input id="homeTeam" value="VBC Frauenfeld 1" /></label>
@@ -78,6 +79,11 @@
           <label>Eigenes Team<input id="ownTeam" value="VBC Frauenfeld 1" /></label>
         </div>
         <div id="homeAwayBadge" class="match-badge">HEIMSPIEL</div>
+        <div class="button-row">
+          <button id="saveEventBtn" class="secondary" type="button">Spiel im Spielplan speichern</button>
+          <button id="newEventBtn" class="secondary" type="button">Neues Spiel</button>
+          <button id="deleteEventBtn" class="secondary" type="button">Spiel entfernen</button>
+        </div>
       </div>
 
       <div class="card">
@@ -116,6 +122,18 @@
         <button id="resetLogosBtn" class="secondary full" type="button">Eigene Logo-Zuordnungen zurücksetzen</button>
       </div>
 
+      <div class="card">
+        <div class="eyebrow">4 · Daten</div>
+        <h2>Spielplan und Teamdaten</h2>
+        <p class="hint">Die gemeinsamen Spiele, Spieler und Logos werden beim Öffnen geladen. Bearbeitungen bleiben zunächst auf diesem Gerät. Exportiere die Daten, um die gemeinsame Datei zu aktualisieren.</p>
+        <div class="button-row">
+          <button id="exportDataBtn" class="secondary" type="button">Daten exportieren</button>
+          <button id="loadProjectDataBtn" class="secondary" type="button">Gemeinsame Daten laden</button>
+        </div>
+        <label>Datendatei importieren<input id="importDataFile" type="file" accept=".json,application/json" /></label>
+        <p id="dataStatus" class="hint" role="status" aria-live="polite">Gemeinsame Daten werden geladen …</p>
+      </div>
+
       <div class="card actions-card">
         <button id="sharePngBtn" class="secondary" type="button">Bild teilen</button>
         <button id="exportPngBtn" class="secondary" type="button">Bild speichern</button>
@@ -135,6 +153,7 @@
     </section>
   </main>
 
+  <script src="data-store.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

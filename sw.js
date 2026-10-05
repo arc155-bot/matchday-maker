@@ -1,6 +1,6 @@
-const CACHE='matchday-mobile-v4-2-oswald-montserrat';
+const CACHE='matchday-mobile-v4-3-shared-data-transparent-logos';
 const ASSETS=[
-  './','index.html','styles.css','app.js','manifest.webmanifest','icon.svg',
+  './','index.html','styles.css','data-store.js','app.js','data/app-data.json','manifest.webmanifest','icon.svg',
   'assets/backgrounds/Halle.png','assets/backgrounds/base_match.png','assets/backgrounds/base_roster.png',
   'assets/logos/vbc_frauenfeld.png','assets/logos/instagram_herren1.png',
   'assets/logos/volley_amriswil.png','assets/logos/volley_buetschwil.png',
