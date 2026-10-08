@@ -62,11 +62,6 @@
       "name": "Jan",
       "number": 13,
       "selected": true
-    },
-    {
-      "name": "Zaki",
-      "number": 20,
-      "selected": true
     }
   ],
   "logos": [
@@ -279,5 +274,8 @@
       "competition": "3. Liga · Männer"
     }
   ],
-  "logoOverrides": {}
+  "logoOverrides": {},
+  "removedPlayers": [
+    "Zaki"
+  ]
 }

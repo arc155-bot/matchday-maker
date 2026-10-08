@@ -183,9 +183,19 @@
   function normalizeRoles() {
     const selected = players.filter(p => p.selected);
     if (!selected.some(p => p.name === captain)) captain = selected[0]?.name || '';
-    if (!selected.some(p => p.name === libero)) {
-      libero = selected.find(p => p.name !== captain)?.name || selected[0]?.name || '';
+    if (libero && (!selected.some(p => p.name === libero) || libero === captain)) {
+      libero = selected.find(p => p.name !== captain)?.name || '';
     }
+  }
+
+  function applyRosterRemovals() {
+    const applied = readStorage('md_appliedRosterRemovals', []);
+    const pending = projectData.removedPlayers.filter(name => !applied.includes(name));
+    if (!pending.length) return;
+    players = players.filter(player => !pending.includes(player.name));
+    normalizeRoles();
+    saveState();
+    localStorage.setItem('md_appliedRosterRemovals', JSON.stringify([...new Set([...applied, ...pending])]));
   }
 
   function orderedRoster() {
@@ -258,6 +268,13 @@
     [['captainSelect', captain], ['liberoSelect', libero]].forEach(([id, value]) => {
       const select = $(id);
       select.innerHTML = '';
+      if (id === 'liberoSelect') {
+        const option = document.createElement('option');
+        option.value = '';
+        option.textContent = 'Kein Libero';
+        option.selected = !value;
+        select.appendChild(option);
+      }
       selected.forEach(p => {
         const option = document.createElement('option');
         option.value = p.name;
@@ -1112,6 +1129,7 @@
   restore();
   scheduleSource = readStorage('md_scheduleSource', scheduleSource);
   populateEvents({ apply: !readStorage('md_match', null) });
+  applyRosterRemovals();
   renderRosterControls();
   updateHomeAway();
 
@@ -1123,7 +1141,7 @@
 
   $('captainSelect').addEventListener('change', e => {
     captain = e.target.value;
-    if (libero === captain) libero = players.find(p => p.selected && p.name !== captain)?.name || libero;
+    if (libero && libero === captain) libero = players.find(p => p.selected && p.name !== captain)?.name || '';
     saveState();
     invalidateScene();
     renderRoleSelects();
@@ -1131,7 +1149,7 @@
   });
   $('liberoSelect').addEventListener('change', e => {
     libero = e.target.value;
-    if (captain === libero) captain = players.find(p => p.selected && p.name !== libero)?.name || captain;
+    if (libero && captain === libero) captain = players.find(p => p.selected && p.name !== libero)?.name || captain;
     saveState();
     invalidateScene();
     renderRoleSelects();

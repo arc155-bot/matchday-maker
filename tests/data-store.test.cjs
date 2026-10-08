@@ -65,3 +65,17 @@ test('export/import round trip retains shared data and additional uploaded logos
   const validated = Data.validateData(original);
   assert.deepEqual(Data.validateData(JSON.parse(JSON.stringify(validated))), validated);
 });
+
+test('no-libero data and roster removals survive export while older files stay compatible', () => {
+  const original = JSON.parse(fs.readFileSync(require.resolve('../data/app-data.json'), 'utf8'));
+  original.team.libero = '';
+  const reloaded = Data.validateData(JSON.parse(JSON.stringify(Data.validateData(original))));
+  assert.equal(reloaded.team.libero, '');
+  assert.ok(reloaded.players.some(player => player.name === 'Kevin'));
+  assert.ok(!reloaded.players.some(player => player.name === 'Zaki'));
+  assert.deepEqual(reloaded.removedPlayers, ['Zaki']);
+  delete original.removedPlayers;
+  assert.deepEqual(Data.validateData(original).removedPlayers, []);
+  original.removedPlayers = [42];
+  assert.throws(() => Data.validateData(original), /Spielerentfernung/);
+});

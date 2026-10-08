@@ -45,6 +45,8 @@ Felben-Wellhausen, Rickenbach und Smash verwenden die freigestellten PNGs.
 `data/app-data.json` ist die gemeinsame Datendatei. Sie enthält:
 
 - Teamname, Liga, Coach, Captain und Libero unter `team`.
+- Unter „Libero“ kann „Kein Libero“ ausgewählt werden. Der leere Wert bleibt beim Speichern und Exportieren erhalten; der bisherige Libero wird dann als normaler Spieler angezeigt.
+- `removedPlayers` enthält einmalig auf bestehenden Geräten zu entfernende Spielernamen. Andere lokale Kaderänderungen bleiben erhalten.
 - Spielernamen, Trikotnummern und Aufgebot unter `players`.
 - Die Zuordnung von Teamnamen zu Logo-Dateien unter `logos`.
 - Spiele mit ID, Heimteam, Auswärtsteam, Datum, Uhrzeit, Halle und Adresse unter `matches`.

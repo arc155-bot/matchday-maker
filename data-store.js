@@ -42,6 +42,8 @@
       if (!name || !Number.isInteger(number) || number < 0 || number > 99) throw new Error(`Spieler ${index + 1}: Name oder Trikotnummer ist ungültig.`);
       return { name, number, selected: player.selected !== false };
     });
+    const removedPlayers = raw.removedPlayers ?? [];
+    if (!Array.isArray(removedPlayers) || removedPlayers.some(name => !text(name))) throw new Error('Eine gespeicherte Spielerentfernung ist ungültig.');
     const logos = raw.logos.map(logo => {
       if (!Array.isArray(logo.keys) || !logo.keys.length || logo.keys.some(key => !text(key)) || !/^assets\/logos\/[^/]+\.(?:png|jpg|jpeg|webp|svg)$/i.test(text(logo.src))) throw new Error('Eine Logo-Zuordnung ist ungültig.');
       return { keys: logo.keys.map(text), src: text(logo.src) };
@@ -53,7 +55,7 @@
       if (!key || typeof src !== 'string' || !/^(?:data:image\/|assets\/logos\/)/i.test(src)) throw new Error('Ein zusätzliches Logo ist ungültig.');
       Object.defineProperty(logoOverrides, key, { value: src, enumerable: true });
     }
-    return { version: 1, timezone, source: raw.source && typeof raw.source === 'object' ? { url: text(raw.source.url), importedAt: text(raw.source.importedAt) } : { url: '', importedAt: '' }, team, players, logos, matches, logoOverrides };
+    return { version: 1, timezone, source: raw.source && typeof raw.source === 'object' ? { url: text(raw.source.url), importedAt: text(raw.source.importedAt) } : { url: '', importedAt: '' }, team, players, removedPlayers: [...new Set(removedPlayers.map(text))], logos, matches, logoOverrides };
   }
 
   function dateParts(date, timezone) {

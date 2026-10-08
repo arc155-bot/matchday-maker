@@ -1,4 +1,4 @@
-const CACHE='matchday-mobile-v4-3-shared-data-transparent-logos';
+const CACHE='matchday-mobile-v4-4-optional-libero-roster-update';
 const ASSETS=[
   './','index.html','styles.css','data-store.js','app.js','data/app-data.json','manifest.webmanifest','icon.svg',
   'assets/backgrounds/Halle.png','assets/backgrounds/base_match.png','assets/backgrounds/base_roster.png',
