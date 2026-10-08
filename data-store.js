@@ -17,11 +17,13 @@
       id: text(String(raw.id ?? '')),
       homeTeam: text(raw.homeTeam), awayTeam: text(raw.awayTeam),
       date: text(raw.date), time: text(raw.time),
-      venue: text(raw.venue), address: text(raw.address), competition: text(raw.competition)
+      venue: text(raw.venue), address: text(raw.address), competition: text(raw.competition),
+      matchType: text(raw.matchType) || 'auto'
     };
     if (!match.homeTeam || !match.awayTeam) throw new Error(`Spiel ${index + 1}: Heim- und Auswärtsteam fehlen.`);
     if (!validDate(match.date)) throw new Error(`Spiel ${index + 1}: Datum ist ungültig.`);
     if (match.time && !/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(match.time)) throw new Error(`Spiel ${index + 1}: Uhrzeit ist ungültig.`);
+    if (!['auto', 'home', 'away'].includes(match.matchType)) throw new Error(`Spiel ${index + 1}: Heim-/Auswärtsauswahl ist ungültig.`);
     match.id ||= `${match.date}-${match.homeTeam}-${match.awayTeam}`;
     return match;
   }

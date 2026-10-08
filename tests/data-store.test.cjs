@@ -79,3 +79,15 @@ test('no-libero data and roster removals survive export while older files stay c
   original.removedPlayers = [42];
   assert.throws(() => Data.validateData(original), /Spielerentfernung/);
 });
+
+test('manual home/away settings survive JSON export and legacy or ICS matches remain automatic', () => {
+  const original = JSON.parse(fs.readFileSync(require.resolve('../data/app-data.json'), 'utf8'));
+  assert.equal(Data.validateData(original).matches[0].matchType, 'auto');
+  original.matches[0].matchType = 'away';
+  const reloaded = Data.validateData(JSON.parse(JSON.stringify(Data.validateData(original))));
+  assert.equal(reloaded.matches[0].matchType, 'away');
+  assert.equal(reloaded.matches[1].matchType, 'auto');
+  assert.equal(Data.parseICS(calendar('DTSTART;TZID=Europe/Zurich:20261025T140000'))[0].matchType, 'auto');
+  original.matches[0].matchType = 'invalid';
+  assert.throws(() => Data.validateData(original), /Heim-\/Auswärtsauswahl/);
+});

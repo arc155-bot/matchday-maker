@@ -54,7 +54,7 @@
   let libero = localStorage.getItem('md_libero') ?? projectData.team.libero;
   let customLogos = readStorage('md_teamLogos', projectData.logoOverrides);
 
-  const matchFields = ['homeTeam', 'awayTeam', 'date', 'time', 'venue', 'address', 'competition', 'ownTeam', 'coach'];
+  const matchFields = ['homeTeam', 'awayTeam', 'date', 'time', 'venue', 'address', 'competition', 'ownTeam', 'coach', 'matchType'];
 
   function readStorage(key, fallback) {
     try { return JSON.parse(localStorage.getItem(key)) ?? fallback; }
@@ -97,7 +97,7 @@
   function saveCurrentEvent(notify = true) {
     const event = Data.normalizeMatch({
       id: selectedEventId || `manual-${globalThis.crypto?.randomUUID?.() || Date.now()}`,
-      ...Object.fromEntries(['homeTeam', 'awayTeam', 'date', 'time', 'venue', 'address', 'competition'].map(key => [key, $(key).value]))
+      ...Object.fromEntries(['homeTeam', 'awayTeam', 'date', 'time', 'venue', 'address', 'competition', 'matchType'].map(key => [key, $(key).value]))
     });
     const existing = parsedEvents.findIndex(item => item.id === event.id);
     if (existing >= 0) parsedEvents[existing] = event;
@@ -133,6 +133,7 @@
     if (!parsedEvents.length) {
       ['homeTeam', 'awayTeam', 'date', 'time', 'venue', 'address'].forEach(key => { $(key).value = ''; });
       $('homeTeam').value = projectData.team.name;
+      $('matchType').value = 'auto';
     }
     populateEvents();
     persistEvents();
@@ -309,6 +310,8 @@
   }
 
   function isOwnHome() {
+    if ($('matchType').value === 'home') return true;
+    if ($('matchType').value === 'away') return false;
     return sameTeam($('homeTeam').value, $('ownTeam').value);
   }
 
@@ -976,6 +979,7 @@
     selectedEventId = e.id;
     localStorage.setItem('md_selectedEventId', e.id);
     ['homeTeam', 'awayTeam', 'date', 'time', 'venue', 'address'].forEach(key => { $(key).value = e[key] || ''; });
+    $('matchType').value = e.matchType || 'auto';
     $('competition').value = e.competition || projectData.team.competition;
     saveState();
     invalidateScene();
@@ -1134,10 +1138,23 @@
   updateHomeAway();
 
   matchFields.forEach(id => $(id).addEventListener('input', () => {
+    if (id === 'matchType') return;
     saveState();
     invalidateScene();
     draw();
   }));
+
+  $('matchType').addEventListener('change', () => {
+    const type = $('matchType').value;
+    const ownHome = sameTeam($('homeTeam').value, $('ownTeam').value);
+    const ownAway = sameTeam($('awayTeam').value, $('ownTeam').value);
+    if ((type === 'home' && ownAway && !ownHome) || (type === 'away' && ownHome && !ownAway)) {
+      [$('homeTeam').value, $('awayTeam').value] = [$('awayTeam').value, $('homeTeam').value];
+    }
+    saveState();
+    invalidateScene();
+    draw();
+  });
 
   $('captainSelect').addEventListener('change', e => {
     captain = e.target.value;
@@ -1265,6 +1282,7 @@
     $('eventSelect').value = '';
     ['homeTeam', 'awayTeam', 'date', 'time', 'venue', 'address'].forEach(key => { $(key).value = ''; });
     $('homeTeam').value = $('ownTeam').value;
+    $('matchType').value = 'auto';
     $('competition').value = projectData.team.competition;
     saveState();
     localStorage.removeItem('md_selectedEventId');

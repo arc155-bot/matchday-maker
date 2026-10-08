@@ -63,6 +63,13 @@ offline bereit. Persönliche Bearbeitungen auf dem Gerät bleiben erhalten.
 
 Zum Ändern ohne Codebearbeitung:
 
+Unter „Heim / Auswärts“ kannst du „Heimspiel“ oder „Auswärtsspiel“ wählen.
+Steht das eigene Team auf der anderen Seite, tauscht die App die beiden Teams
+mit ihren zugehörigen Logos. Die Auswahl bleibt im Entwurf gespeichert und
+wird mit „Spiel im Spielplan speichern“ auch in den Spielplan übernommen.
+„Automatisch anhand der Teams“ verwendet wie bisher die Teamreihenfolge.
+Ein anderes ausgewähltes Spiel übernimmt seine eigene Einstellung.
+
 1. Ein Spiel auswählen oder `Neues Spiel` anklicken und die Angaben bearbeiten.
 2. `Spiel im Spielplan speichern` anklicken. Spieler und Rollen wie bisher bearbeiten.
 3. `Daten exportieren` lädt eine vollständige `app-data.json` herunter.
