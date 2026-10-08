@@ -1034,76 +1034,41 @@
   async function renderVideo() {
     const button = $('renderVideoBtn');
     button.disabled = true;
+    $('videoResult').hidden = true;
     $('renderStatus').textContent = 'Original-Animation wird vorbereitet…';
-
-    if (!canvas.captureStream || typeof MediaRecorder === 'undefined') {
-      $('renderStatus').textContent = 'Dieser Browser unterstützt den Videoexport nicht.';
+    const name = `matchday-${$('date').value || 'story'}.mp4`;
+    try {
+      if (!globalThis.MatchdayVideo) throw new Error('Videoexport konnte nicht geladen werden. Bitte die App neu laden.');
+      const scene = await getScene();
+      const result = await MatchdayVideo.encodeCanvas({
+        width: W, height: H, fps: 30, duration: TOTAL_SECONDS,
+        onProgress: progress => {
+          $('renderStatus').textContent = `Video wird erstellt · ${Math.round(progress * 100)} % · ${TOTAL_SECONDS.toFixed(1)} s…`;
+        },
+        drawFrame: (target, seconds) => {
+          if (seconds < MATCH_SECONDS) {
+            animateMatch(target, scene, seconds / MATCH_SECONDS);
+          } else if (seconds < MATCH_SECONDS + TRANSITION_SECONDS) {
+            transitionFrame(target, scene, (seconds - MATCH_SECONDS) / TRANSITION_SECONDS);
+          } else {
+            const elapsed = seconds - MATCH_SECONDS - TRANSITION_SECONDS;
+            animateRoster(target, scene, rosterPhase(elapsed, ROSTER_SECONDS, ROSTER_HOLD_SECONDS));
+          }
+        }
+      });
+      if (renderedVideoUrl) URL.revokeObjectURL(renderedVideoUrl);
+      renderedVideoBlob = result.blob;
+      renderedVideoName = name;
+      renderedVideoUrl = URL.createObjectURL(result.blob);
+      $('videoPreview').src = renderedVideoUrl;
+      $('videoResult').hidden = false;
+      $('renderStatus').textContent = `Fertig – MP4 · ${result.duration.toFixed(1)} s. Tippe auf „Video speichern“ oder „Video teilen“.`;
+    } catch (error) {
+      $('renderStatus').textContent = `Video konnte nicht erstellt werden: ${error.message}`;
+    } finally {
       button.disabled = false;
-      return;
+      draw();
     }
-
-    const scene = await getScene();
-    const fps = 30;
-    const stream = canvas.captureStream(fps);
-    let mime = '';
-    ['video/mp4;codecs=avc1.42E01E', 'video/mp4', 'video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm'].some(type => {
-      if (MediaRecorder.isTypeSupported(type)) { mime = type; return true; }
-      return false;
-    });
-    if (!mime) {
-      $('renderStatus').textContent = 'Auf diesem Handy wurde kein unterstütztes Videoformat gefunden.';
-      button.disabled = false;
-      return;
-    }
-
-    const chunks = [];
-    const recorder = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 9_000_000 });
-    recorder.ondataavailable = e => { if (e.data.size) chunks.push(e.data); };
-    const finished = new Promise(resolve => recorder.onstop = resolve);
-    recorder.start(250);
-
-    const start = performance.now();
-    $('renderStatus').textContent = `Video wird erstellt · ${TOTAL_SECONDS.toFixed(1)} s…`;
-
-    while (true) {
-      const seconds = (performance.now() - start) / 1000;
-      if (seconds >= TOTAL_SECONDS) break;
-      if (seconds < MATCH_SECONDS) {
-        animateMatch(ctx, scene, seconds / MATCH_SECONDS);
-      } else if (seconds < MATCH_SECONDS + TRANSITION_SECONDS) {
-        const ratio = (seconds - MATCH_SECONDS) / TRANSITION_SECONDS;
-        transitionFrame(ctx, scene, ratio);
-      } else {
-        const elapsed = seconds - MATCH_SECONDS - TRANSITION_SECONDS;
-        animateRoster(ctx, scene, rosterPhase(elapsed, ROSTER_SECONDS, ROSTER_HOLD_SECONDS));
-      }
-      await new Promise(r => requestAnimationFrame(r));
-    }
-
-    // Letzten vollständigen Kaderframe sicher aufnehmen.
-    animateRoster(ctx, scene, 1);
-    await new Promise(r => setTimeout(r, 80));
-    recorder.stop();
-    await finished;
-
-    const ext = mime.includes('mp4') ? 'mp4' : 'webm';
-    const blob = new Blob(chunks, { type: mime });
-    const name = `matchday-${$('date').value || 'story'}.${ext}`;
-
-    // Android/Chrome verliert während der 11.2-s-Generierung die ursprüngliche
-    // Nutzeraktivierung. Ein automatischer Download oder Share-Aufruf kann dann
-    // lautlos blockiert werden. Darum speichern wir das Ergebnis zunächst im
-    // Speicher und zeigen anschließend explizite Buttons an, die der Nutzer
-    // mit einem zweiten Tap auslöst.
-    if (renderedVideoUrl) URL.revokeObjectURL(renderedVideoUrl);
-    renderedVideoBlob = blob;
-    renderedVideoName = name;
-    renderedVideoUrl = URL.createObjectURL(blob);
-    $('videoPreview').src = renderedVideoUrl;
-    $('videoResult').hidden = false;
-    $('renderStatus').textContent = `Fertig – ${ext.toUpperCase()} erstellt. Tippe jetzt auf „Video speichern“ oder „Video teilen“.`;
-    button.disabled = false;
-    draw();
   }
 
   function readFileAsDataURL(file) {

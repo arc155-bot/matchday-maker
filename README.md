@@ -14,6 +14,22 @@ bleibt die App mit Fallback-Schriften funktionsfähig.
 Der Android-Download-Fix aus v4.1 bleibt erhalten:
 Nach dem Rendern erscheinen **Video teilen** und **Video speichern**.
 
+## Videoexport
+
+Das Video wird als vollständige H.264-MP4 mit 30 Bildern pro Sekunde erstellt.
+Die feste Zeitleiste umfasst 11,2 Sekunden: Matchdaten, Übergang und Kader.
+Vor dem Speichern prüft die App die Dauer in den MP4-Metadaten und alle 336
+Videoframes. Die Aufnahme hängt nicht von der verstrichenen Renderzeit ab.
+
+Für den Export benötigt der Browser einen H.264-Encoder über WebCodecs.
+Die App verwendet 1080 × 1920 Pixel oder, falls das Gerät diese Auflösung nicht
+kodieren kann, 720 × 1280 Pixel. Fehlt der Encoder, zeigt die App eine Meldung.
+Nach einem App-Update müssen bisherige Videos neu erstellt werden.
+
+Mediabunny liegt mit Lizenzhinweisen unter `vendor/` und wird auch offline
+bereitgehalten. Ein zusätzlicher Build-Schritt ist nicht erforderlich.
+Prüfung der MP4-Dauer: `node --test tests/video-export.test.cjs`.
+
 ## Netlify
 
 Die App wird in `arc155-bot/matchday-maker` auf dem Branch `main` verwaltet.
