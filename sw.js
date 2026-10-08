@@ -1,4 +1,4 @@
-const CACHE='matchday-mobile-v4-6-complete-mp4-export';
+const CACHE='matchday-mobile-v4-7-adaptive-roster-panel';
 const ASSETS=[
   './','index.html','styles.css','data-store.js','vendor/mediabunny-1.61.3.min.js','video-export.js','app.js','data/app-data.json','manifest.webmanifest','icon.svg',
   'assets/backgrounds/Halle.png','assets/backgrounds/base_match.png','assets/backgrounds/base_roster.png',

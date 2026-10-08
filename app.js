@@ -671,17 +671,23 @@
   }
 
   function rosterLayout(roster) {
-    const rows = Math.max(1, roster.length);
+    if (!roster.length) return { rows: [], panelBounds: null };
+    const rows = roster.length;
     const innerLeft = 205;
     const innerRight = W - 205;
     const columnWidth = innerRight - innerLeft;
     const availableHeight = 1088;
     const rowHeight = Math.min(126, Math.floor(availableHeight / rows));
-    const top = 548 + Math.max(0, Math.floor((availableHeight - rowHeight * rows) / 2));
-    return roster.map((player, index) => ({ player, x: innerLeft, y: top + index * rowHeight, width: columnWidth, height: rowHeight }));
+    const top = 548;
+    const panelBounds = [170, 530, W - 170, top + rowHeight * rows + 24];
+    return {
+      panelBounds,
+      rows: roster.map((player, index) => ({ player, x: innerLeft, y: top + index * rowHeight, width: columnWidth, height: rowHeight }))
+    };
   }
 
   function buildRosterLayers(roster) {
+    const { rows, panelBounds } = rosterLayout(roster);
     const title = layer(g => {
       const text = 'KADER';
       const size = fitFont(g, text, 'displayLight', 142, 76, 900);
@@ -697,11 +703,12 @@
       outlinedText(g, name, 346, 485, 'bold', nameSize, 'rgba(255,255,255,.98)', 'rgba(0,0,0,0)', 0, 'left');
     }, [180, 445, 920, 525]);
 
-    const panel = layer(g => {
-      roundedPanel(g, 170, 530, W - 340, 1130, 38, 'rgba(5,1,12,.376)', rgba(ACCENT, 105 / 255), 2);
-    }, [168, 528, 912, 1662]);
+    const panel = panelBounds ? layer(g => {
+      const [left, top, right, bottom] = panelBounds;
+      roundedPanel(g, left, top, right - left, bottom - top, 38, 'rgba(5,1,12,.376)', rgba(ACCENT, 105 / 255), 2);
+    }, panelBounds.map((value, index) => value + (index < 2 ? -2 : 2))) : null;
 
-    const playerLayers = rosterLayout(roster).map(({ player, x, y, width, height }) => layer(g => {
+    const playerLayers = rows.map(({ player, x, y, width, height }) => layer(g => {
       const centerY = y + height / 2;
       g.strokeStyle = 'rgba(255,255,255,.118)';
       g.lineWidth = 2;
@@ -723,7 +730,7 @@
       outlinedText(g, nr, numberX, centerY, 'displayMedium', nrSize, '#fff', 'rgba(6,1,12,.706)', .5, 'right');
     }, [x, y, x + width, y + height]));
 
-    return { title, coach, panel, playerLayers };
+    return { title, coach, panel, panelBounds, playerLayers };
   }
 
   async function ensureFonts() {
@@ -853,10 +860,17 @@
     }
   }
 
-  function morphPanel(target, progress) {
+  function morphPanel(target, progress, panelBounds) {
     const p = clamp(progress);
     const s = [54, 1195, W - 54, 1535];
-    const t = [170, 530, W - 170, 1660];
+    if (!panelBounds) {
+      target.save();
+      target.globalAlpha *= 1 - p;
+      roundedPanel(target, s[0], s[1], s[2] - s[0], s[3] - s[1], 38, 'rgba(7,2,14,.439)', rgba(ACCENT, 126 / 255), 2);
+      target.restore();
+      return;
+    }
+    const t = panelBounds;
     const box = s.map((v, i) => lerp(v, t[i], p));
     const fillA = [7, 2, 14, 112 / 255];
     const fillB = [5, 1, 12, 96 / 255];
@@ -890,7 +904,7 @@
     const m = scene.match;
     [m.header, m.logos, m.versus, m.teamNames, m.venue].forEach(x => compositeLayer(target, x, matchOpacity));
 
-    morphPanel(target, motion);
+    morphPanel(target, motion, scene.roster.panelBounds);
     compositeLayer(target, m.dateText, matchOpacity);
     drawLayerSmooth(target, scene.roster.title, segment(ratio, .30, .92), { fromDy: 26, fromScale: .985 });
   }
